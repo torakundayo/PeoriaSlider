@@ -1,6 +1,6 @@
 import type { CompetitionConfig } from '../types';
 import { DEFAULT_CONFIG, HDCP_LIMIT_OPTIONS } from '../types';
-import { generateRandomHiddenHoles } from '../utils/calculation';
+import { generateRandomHiddenHoles, calculateHiddenHolesPar } from '../utils/calculation';
 import './ConfigPanel.css';
 
 interface ConfigPanelProps {
@@ -55,7 +55,7 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
   };
 
   const handleRandomHiddenHoles = () => {
-    const randomHoles = generateRandomHiddenHoles();
+    const randomHoles = generateRandomHiddenHoles(config.par);
     onChange({ ...config, hiddenHoles: randomHoles });
   };
 
@@ -65,6 +65,8 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
 
   const totalPar = config.par.reduce((sum, p) => sum + p, 0);
   const hiddenHolesCount = config.hiddenHoles.length;
+  const hiddenHolesPar = calculateHiddenHolesPar(config.hiddenHoles, config.par);
+  const isHiddenParValid = hiddenHolesPar === 48;
 
   return (
     <div className="config-panel">
@@ -106,34 +108,49 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
           </button>
         </div>
 
+        {/* 隠しホールPar合計表示 */}
+        <div className={`hidden-par-total ${!isHiddenParValid ? 'warning' : ''}`}>
+          <span>隠しホールPar合計: </span>
+          <span className="par-value">{hiddenHolesPar}</span>
+          {!isHiddenParValid && hiddenHolesCount > 0 && (
+            <span className="warning-text">
+              ※ 合計が48ではありません（HDCP基準がズレる可能性があります）
+            </span>
+          )}
+        </div>
+
         <div className="holes-grid">
           {/* OUT (1-9) */}
           <div className="holes-row">
             <span className="row-label">OUT</span>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <button
-                key={i}
-                type="button"
-                className={`hole-btn ${config.hiddenHoles.includes(i) ? 'selected' : ''}`}
-                onClick={() => handleHiddenHoleToggle(i)}
-              >
-                {i + 1}
-              </button>
-            ))}
+            <div className="holes-buttons">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`hole-btn ${config.hiddenHoles.includes(i) ? 'selected' : ''}`}
+                  onClick={() => handleHiddenHoleToggle(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
           {/* IN (10-18) */}
           <div className="holes-row">
             <span className="row-label">IN</span>
-            {[9, 10, 11, 12, 13, 14, 15, 16, 17].map(i => (
-              <button
-                key={i}
-                type="button"
-                className={`hole-btn ${config.hiddenHoles.includes(i) ? 'selected' : ''}`}
-                onClick={() => handleHiddenHoleToggle(i)}
-              >
-                {i + 1}
-              </button>
-            ))}
+            <div className="holes-buttons">
+              {[9, 10, 11, 12, 13, 14, 15, 16, 17].map(i => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`hole-btn ${config.hiddenHoles.includes(i) ? 'selected' : ''}`}
+                  onClick={() => handleHiddenHoleToggle(i)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -147,34 +164,38 @@ export function ConfigPanel({ config, onChange }: ConfigPanelProps) {
           {/* OUT */}
           <div className="par-row">
             <span className="row-label">OUT</span>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <select
-                key={i}
-                value={config.par[i]}
-                onChange={e => handleParChange(i, parseInt(e.target.value))}
-                className="par-select"
-              >
-                <option value={3}>3</option>
-                <option value={4}>4</option>
-                <option value={5}>5</option>
-              </select>
-            ))}
+            <div className="par-selects">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                <select
+                  key={i}
+                  value={config.par[i]}
+                  onChange={e => handleParChange(i, parseInt(e.target.value))}
+                  className="par-select"
+                >
+                  <option value={3}>3</option>
+                  <option value={4}>4</option>
+                  <option value={5}>5</option>
+                </select>
+              ))}
+            </div>
           </div>
           {/* IN */}
           <div className="par-row">
             <span className="row-label">IN</span>
-            {[9, 10, 11, 12, 13, 14, 15, 16, 17].map(i => (
-              <select
-                key={i}
-                value={config.par[i]}
-                onChange={e => handleParChange(i, parseInt(e.target.value))}
-                className="par-select"
-              >
-                <option value={3}>3</option>
-                <option value={4}>4</option>
-                <option value={5}>5</option>
-              </select>
-            ))}
+            <div className="par-selects">
+              {[9, 10, 11, 12, 13, 14, 15, 16, 17].map(i => (
+                <select
+                  key={i}
+                  value={config.par[i]}
+                  onChange={e => handleParChange(i, parseInt(e.target.value))}
+                  className="par-select"
+                >
+                  <option value={3}>3</option>
+                  <option value={4}>4</option>
+                  <option value={5}>5</option>
+                </select>
+              ))}
+            </div>
           </div>
         </div>
       </details>

@@ -107,16 +107,58 @@
   margin-top: 4px;
 }
 
+/* Hidden holes par total */
+.hidden-par-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #2e7d32;
+}
+
+.hidden-par-total .par-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.hidden-par-total.warning {
+  background: #fff3e0;
+  border: 1px solid #ff9800;
+}
+
+.hidden-par-total.warning .par-value {
+  color: #e65100;
+}
+
+.hidden-par-total .warning-text {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #e65100;
+  font-weight: 500;
+}
+
 /* Holes grid */
 .holes-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .holes-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.holes-buttons {
+  display: flex;
   gap: 4px;
   flex-wrap: wrap;
 }
@@ -125,8 +167,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #666;
-  width: 32px;
-  flex-shrink: 0;
 }
 
 .hole-btn {
@@ -155,13 +195,18 @@
 .par-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   margin-top: 12px;
 }
 
 .par-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.par-selects {
+  display: flex;
   gap: 4px;
   flex-wrap: wrap;
 }

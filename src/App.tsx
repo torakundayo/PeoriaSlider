@@ -6,6 +6,7 @@ import { saveState, loadState, exportToJson, importFromJson } from './utils/stor
 import { ConfigPanel } from './components/ConfigPanel';
 import { PlayerInput } from './components/PlayerInput';
 import { ResultsTable } from './components/ResultsTable';
+import { HelpModal } from './components/HelpModal';
 import './App.css';
 
 type Tab = 'config' | 'input' | 'results';
@@ -15,6 +16,8 @@ function App() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('input');
   const [previousResults, setPreviousResults] = useState<CalculationResult[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Load saved state on mount
   useEffect(() => {
@@ -103,8 +106,35 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>PeoriaSlider</h1>
-        <p className="subtitle">ゴルフコンペ順位シミュレーション</p>
+        <div className="header-content">
+          <div className="header-title">
+            <h1>PeoriaSlider</h1>
+            <p className="subtitle">ゴルフコンペ順位シミュレーション</p>
+          </div>
+          <button
+            className="menu-btn"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="メニュー"
+          >
+            <span className="menu-icon">☰</span>
+          </button>
+        </div>
+        {menuOpen && (
+          <div className="dropdown-menu">
+            <button onClick={() => { setHelpOpen(true); setMenuOpen(false); }}>
+              使い方
+            </button>
+            <button onClick={() => { handleExport(); setMenuOpen(false); }}>
+              エクスポート
+            </button>
+            <button onClick={() => { handleImport(); setMenuOpen(false); }}>
+              インポート
+            </button>
+            <button className="danger" onClick={() => { handleClearAll(); setMenuOpen(false); }}>
+              データクリア
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Quick stats */}
@@ -163,18 +193,8 @@ function App() {
         )}
       </main>
 
-      {/* Footer actions */}
-      <footer className="app-footer">
-        <button onClick={handleExport} className="footer-btn">
-          エクスポート
-        </button>
-        <button onClick={handleImport} className="footer-btn">
-          インポート
-        </button>
-        <button onClick={handleClearAll} className="footer-btn danger">
-          クリア
-        </button>
-      </footer>
+      {/* Help Modal */}
+      <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

@@ -209,14 +209,24 @@ export function getBoobyRank(results: CalculationResult[]): number | null {
 }
 
 /**
- * ランダムに隠しホールを選択（新ペリア標準：OUT/IN各6ホール）
+ * 隠しホールのPar合計を計算
  */
-export function generateRandomHiddenHoles(): number[] {
-  const outHoles = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // 0-8 (holes 1-9)
-  const inHoles = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // 9-17 (holes 10-18)
+export function calculateHiddenHolesPar(hiddenHoles: number[], par: number[]): number {
+  return hiddenHoles.reduce((total, holeIndex) => {
+    if (holeIndex >= 0 && holeIndex < par.length) {
+      return total + par[holeIndex];
+    }
+    return total;
+  }, 0);
+}
 
+/**
+ * 新ペリア推奨（合計Par48）の隠しホールをランダムに選出
+ * OUT/INそれぞれで Par3:1個, Par5:1個, Par4:4個 を選出
+ */
+export function generateRandomHiddenHoles(par: number[]): number[] {
   // Fisher-Yates shuffle
-  const shuffle = (arr: number[]): number[] => {
+  const shuffle = <T>(arr: T[]): T[] => {
     const result = [...arr];
     for (let i = result.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -225,8 +235,45 @@ export function generateRandomHiddenHoles(): number[] {
     return result;
   };
 
-  const selectedOut = shuffle(outHoles).slice(0, 6);
-  const selectedIn = shuffle(inHoles).slice(0, 6);
+  // 指定されたParのホールをランダムに選ぶ
+  const pickRandomByPar = (
+    holeIndices: number[],
+    targetPar: number,
+    count: number
+  ): number[] => {
+    const candidates = holeIndices.filter(i => par[i] === targetPar);
+    return shuffle(candidates).slice(0, count);
+  };
 
-  return [...selectedOut, ...selectedIn].sort((a, b) => a - b);
+  // OUT (0-8) と IN (9-17) に分割
+  const outHoles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  const inHoles = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+  // OUT/IN それぞれで選出（Par3:1個, Par5:1個, Par4:4個）
+  const selectedOut = [
+    ...pickRandomByPar(outHoles, 3, 1),
+    ...pickRandomByPar(outHoles, 5, 1),
+    ...pickRandomByPar(outHoles, 4, 4)
+  ];
+
+  const selectedIn = [
+    ...pickRandomByPar(inHoles, 3, 1),
+    ...pickRandomByPar(inHoles, 5, 1),
+    ...pickRandomByPar(inHoles, 4, 4)
+  ];
+
+  const allSelected = [...selectedOut, ...selectedIn];
+
+  // 12ホール取れなかった場合（変則コース）はフォールバック
+  if (allSelected.length < 12) {
+    console.warn('標準的なホール構成ではないため、完全な推奨パターンで選出できませんでした。');
+    // 足りない分を残りのホールからランダムに補填
+    const remainingOut = outHoles.filter(h => !allSelected.includes(h));
+    const remainingIn = inHoles.filter(h => !allSelected.includes(h));
+    const remaining = shuffle([...remainingOut, ...remainingIn]);
+    const needed = 12 - allSelected.length;
+    allSelected.push(...remaining.slice(0, needed));
+  }
+
+  return allSelected.sort((a, b) => a - b);
 }
