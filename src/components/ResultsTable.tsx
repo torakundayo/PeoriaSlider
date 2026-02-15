@@ -1,7 +1,20 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
 import type { CalculationResult } from '../types';
 import { getBoobyRank } from '../utils/calculation';
 import './ResultsTable.css';
+
+function formatResultsText(results: CalculationResult[], boobyRank: number | null): string {
+  const lines = results.map(r => {
+    let badge = '';
+    if (r.rank === 1) badge = '🥇';
+    else if (r.rank === 2) badge = '🥈';
+    else if (r.rank === 3) badge = '🥉';
+    else if (r.rank === boobyRank) badge = '🎯';
+    return `${badge}${r.rank}位 ${r.playerName}  Net ${r.net.toFixed(1)} (G:${r.gross} H:${r.hdcp.toFixed(1)})`;
+  });
+
+  return `⛳ ゴルフコンペ結果\n\n${lines.join('\n')}\n\n📊 PeoriaSlider`;
+}
 
 interface ResultsTableProps {
   results: CalculationResult[];
@@ -11,7 +24,9 @@ interface ResultsTableProps {
 export function ResultsTable({ results, onSave }: ResultsTableProps) {
   const [saveName, setSaveName] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const boobyRank = useMemo(() => getBoobyRank(results), [results]);
   const lastRank = useMemo(() => {
@@ -52,9 +67,41 @@ export function ResultsTable({ results, onSave }: ResultsTableProps) {
     setSaveName('');
     setSaveStatus('saved');
 
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
   };
+
+  const shareText = useMemo(
+    () => formatResultsText(results, boobyRank),
+    [results, boobyRank]
+  );
+
+  const handleShareLine = useCallback(() => {
+    const encoded = encodeURIComponent(shareText);
+    window.open(`https://line.me/R/share?text=${encoded}`, '_blank');
+  }, [shareText]);
+
+  const handleCopyText = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopyStatus('copied');
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = shareText;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopyStatus('copied');
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
+    }
+  }, [shareText]);
 
   if (results.length === 0) {
     return (
@@ -121,6 +168,19 @@ export function ResultsTable({ results, onSave }: ResultsTableProps) {
         <span className="legend-item rank-2">🥈 2位</span>
         <span className="legend-item rank-3">🥉 3位</span>
         <span className="legend-item rank-booby">BB ブービー</span>
+      </div>
+
+      {/* Share section */}
+      <div className="share-section">
+        <button className="btn-share-line" onClick={handleShareLine}>
+          LINE で共有
+        </button>
+        <button
+          className={`btn-copy ${copyStatus === 'copied' ? 'copied' : ''}`}
+          onClick={handleCopyText}
+        >
+          {copyStatus === 'copied' ? 'コピーしました' : 'テキストをコピー'}
+        </button>
       </div>
 
       {/* Save section */}

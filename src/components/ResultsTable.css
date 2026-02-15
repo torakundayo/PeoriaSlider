@@ -214,6 +214,55 @@ tbody td {
   color: #7b1fa2;
 }
 
+/* Share section */
+.share-section {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-share-line {
+  flex: 1;
+  padding: 10px 16px;
+  background: #06c755;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-share-line:hover {
+  background: #05a647;
+}
+
+.btn-copy {
+  flex: 1;
+  padding: 10px 16px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-copy:hover {
+  background: #f5f5f5;
+}
+
+.btn-copy.copied {
+  background: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
 /* Save section */
 .save-section {
   margin-top: 16px;
