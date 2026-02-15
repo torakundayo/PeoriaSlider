@@ -160,20 +160,23 @@ function App() {
           </button>
         </div>
         {menuOpen && (
-          <div className="dropdown-menu">
-            <button onClick={() => { setHelpOpen(true); setMenuOpen(false); }}>
-              使い方
-            </button>
-            <button onClick={() => { handleExport(); setMenuOpen(false); }}>
-              エクスポート
-            </button>
-            <button onClick={() => { handleImport(); setMenuOpen(false); }}>
-              インポート
-            </button>
-            <button className="danger" onClick={() => { handleClearAll(); setMenuOpen(false); }}>
-              データクリア
-            </button>
-          </div>
+          <>
+            <div className="menu-overlay" onClick={() => setMenuOpen(false)} />
+            <div className="dropdown-menu">
+              <button onClick={() => { setHelpOpen(true); setMenuOpen(false); }}>
+                使い方
+              </button>
+              <button onClick={() => { handleExport(); setMenuOpen(false); }}>
+                エクスポート
+              </button>
+              <button onClick={() => { handleImport(); setMenuOpen(false); }}>
+                インポート
+              </button>
+              <button className="danger" onClick={() => { handleClearAll(); setMenuOpen(false); }}>
+                データクリア
+              </button>
+            </div>
+          </>
         )}
       </header>
 

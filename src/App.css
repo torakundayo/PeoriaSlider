@@ -60,6 +60,13 @@
   color: #fff;
 }
 
+/* Menu overlay (closes menu on outside tap) */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
 /* Dropdown menu */
 .dropdown-menu {
   position: absolute;
