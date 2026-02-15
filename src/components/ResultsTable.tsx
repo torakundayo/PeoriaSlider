@@ -1,13 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import type { CalculationResult } from '../types';
 import { getBoobyRank } from '../utils/calculation';
 import './ResultsTable.css';
 
 interface ResultsTableProps {
   results: CalculationResult[];
+  onSave: (name: string) => void;
 }
 
-export function ResultsTable({ results }: ResultsTableProps) {
+export function ResultsTable({ results, onSave }: ResultsTableProps) {
+  const [saveName, setSaveName] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
   const boobyRank = useMemo(() => getBoobyRank(results), [results]);
   const lastRank = useMemo(() => {
     if (results.length === 0) return null;
@@ -37,6 +42,18 @@ export function ResultsTable({ results }: ResultsTableProps) {
     if (result.rank < result.previousRank) return 'up';
     if (result.rank > result.previousRank) return 'down';
     return 'same';
+  };
+
+  const handleSave = () => {
+    const name = saveName.trim();
+    if (!name) return;
+
+    onSave(name);
+    setSaveName('');
+    setSaveStatus('saved');
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
   if (results.length === 0) {
@@ -104,6 +121,28 @@ export function ResultsTable({ results }: ResultsTableProps) {
         <span className="legend-item rank-2">🥈 2位</span>
         <span className="legend-item rank-3">🥉 3位</span>
         <span className="legend-item rank-booby">BB ブービー</span>
+      </div>
+
+      {/* Save section */}
+      <div className="save-section">
+        <div className="save-form">
+          <input
+            type="text"
+            placeholder="例: 2026年2月 月例会"
+            value={saveName}
+            onChange={e => setSaveName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSave()}
+            className="save-name-input"
+            disabled={saveStatus === 'saved'}
+          />
+          <button
+            onClick={handleSave}
+            className={`btn-save ${saveStatus === 'saved' ? 'saved' : ''}`}
+            disabled={saveStatus === 'saved' || !saveName.trim()}
+          >
+            {saveStatus === 'saved' ? '保存しました' : '履歴に保存'}
+          </button>
+        </div>
       </div>
     </div>
   );

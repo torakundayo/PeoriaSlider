@@ -1,7 +1,8 @@
-import type { AppState, CompetitionConfig } from '../types';
+import type { AppState, CompetitionConfig, SavedCompetition } from '../types';
 import { DEFAULT_CONFIG } from '../types';
 
 const STORAGE_KEY = 'peoria-slider-data';
+const HISTORY_KEY = 'peoria-slider-history';
 
 /**
  * アプリケーションの状態をlocalStorageに保存
@@ -96,5 +97,51 @@ export function importFromJson(json: string): AppState | null {
     return parsed;
   } catch {
     return null;
+  }
+}
+
+/**
+ * コンペ履歴を読み込み
+ */
+export function loadHistory(): SavedCompetition[] {
+  try {
+    const data = localStorage.getItem(HISTORY_KEY);
+    if (!data) return [];
+
+    const parsed = JSON.parse(data) as SavedCompetition[];
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      c => c.id && c.name && c.date && isValidConfig(c.config) && Array.isArray(c.players)
+    );
+  } catch (error) {
+    console.error('Failed to load history from localStorage:', error);
+    return [];
+  }
+}
+
+/**
+ * コンペを履歴に保存（先頭に追加）
+ */
+export function saveCompetition(competition: SavedCompetition): void {
+  try {
+    const history = loadHistory();
+    history.unshift(competition);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch (error) {
+    console.error('Failed to save competition to localStorage:', error);
+  }
+}
+
+/**
+ * コンペを履歴から削除
+ */
+export function deleteCompetition(id: string): void {
+  try {
+    const history = loadHistory();
+    const updated = history.filter(c => c.id !== id);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to delete competition from localStorage:', error);
   }
 }

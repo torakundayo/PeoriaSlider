@@ -1,0 +1,133 @@
+.history-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.history-panel h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  color: #333;
+  border-bottom: 2px solid #ff9800;
+  padding-bottom: 8px;
+}
+
+.no-history {
+  text-align: center;
+  color: #999;
+  padding: 24px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: box-shadow 0.2s;
+}
+
+.history-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.history-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-load {
+  padding: 6px 12px;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-load:hover {
+  background: #1b5e20;
+}
+
+.btn-delete {
+  padding: 6px 12px;
+  background: none;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background: #ffebee;
+}
+
+.history-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.history-card-meta span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.history-card-meta span:not(:last-child)::after {
+  content: '|';
+  margin-left: 8px;
+  color: #ccc;
+}
+
+/* Mobile */
+@media (max-width: 400px) {
+  .history-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .history-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  .history-card-meta {
+    font-size: 0.75rem;
+    gap: 4px;
+  }
+}

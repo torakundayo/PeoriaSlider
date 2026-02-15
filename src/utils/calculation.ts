@@ -122,12 +122,11 @@ export function calculatePlayerResult(
 
 /**
  * 順位付けのための比較関数
- * 優先順位: 1. Net（昇順）2. HDCP（昇順）3. 年齢（降順、年長者勝ち）4. Gross（昇順）
+ * 優先順位: 1. Net（昇順）2. HDCP（昇順）3. Gross（昇順）
  */
 function compareResults(
   a: Omit<CalculationResult, 'rank' | 'previousRank'>,
-  b: Omit<CalculationResult, 'rank' | 'previousRank'>,
-  players: Player[]
+  b: Omit<CalculationResult, 'rank' | 'previousRank'>
 ): number {
   // 1. Net スコア（昇順）
   if (a.net !== b.net) {
@@ -139,16 +138,7 @@ function compareResults(
     return a.hdcp - b.hdcp;
   }
 
-  // 3. 年齢（降順：年長者勝ち）
-  const playerA = players.find(p => p.id === a.playerId);
-  const playerB = players.find(p => p.id === b.playerId);
-  const ageA = playerA?.age ?? 0;
-  const ageB = playerB?.age ?? 0;
-  if (ageA !== ageB) {
-    return ageB - ageA; // 年長者が上位
-  }
-
-  // 4. Gross スコア（昇順）
+  // 3. Gross スコア（昇順）
   return a.gross - b.gross;
 }
 
@@ -166,7 +156,7 @@ export function calculateAllResults(
     .map(player => calculatePlayerResult(player, config));
 
   // ソート
-  const sorted = [...results].sort((a, b) => compareResults(a, b, players));
+  const sorted = [...results].sort((a, b) => compareResults(a, b));
 
   // 順位を付与（同点は同順位）
   let currentRank = 1;

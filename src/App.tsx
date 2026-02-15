@@ -1,31 +1,37 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { CompetitionConfig, Player, CalculationResult } from './types';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { CompetitionConfig, Player, CalculationResult, SavedCompetition } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { calculateAllResults } from './utils/calculation';
-import { saveState, loadState, exportToJson, importFromJson } from './utils/storage';
+import {
+  saveState, loadState, exportToJson, importFromJson,
+  loadHistory, saveCompetition, deleteCompetition
+} from './utils/storage';
 import { ConfigPanel } from './components/ConfigPanel';
 import { PlayerInput } from './components/PlayerInput';
 import { ResultsTable } from './components/ResultsTable';
+import { HistoryPanel } from './components/HistoryPanel';
 import { HelpModal } from './components/HelpModal';
 import './App.css';
 
-type Tab = 'config' | 'input' | 'results';
+type Tab = 'config' | 'input' | 'results' | 'history';
 
 function App() {
   const [config, setConfig] = useState<CompetitionConfig>(DEFAULT_CONFIG);
   const [players, setPlayers] = useState<Player[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('input');
-  const [previousResults, setPreviousResults] = useState<CalculationResult[]>([]);
+  const previousResultsRef = useRef<CalculationResult[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [history, setHistory] = useState<SavedCompetition[]>([]);
 
-  // Load saved state on mount
+  // Load saved state and history on mount
   useEffect(() => {
     const saved = loadState();
     if (saved) {
       setConfig(saved.config);
       setPlayers(saved.players);
     }
+    setHistory(loadHistory());
   }, []);
 
   // Save state on changes (debounced)
@@ -38,13 +44,13 @@ function App() {
 
   // Calculate results
   const results = useMemo(() => {
-    return calculateAllResults(players, config, previousResults);
-  }, [players, config, previousResults]);
+    return calculateAllResults(players, config, previousResultsRef.current);
+  }, [players, config]);
 
   // Update previous results for animation tracking
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPreviousResults(results);
+      previousResultsRef.current = results;
     }, 500);
     return () => clearTimeout(timer);
   }, [results]);
@@ -98,6 +104,29 @@ function App() {
       setPlayers([]);
     }
   };
+
+  const handleSaveCompetition = useCallback((name: string) => {
+    const competition: SavedCompetition = {
+      id: `comp-${Date.now()}`,
+      name,
+      date: new Date().toISOString(),
+      config,
+      players
+    };
+    saveCompetition(competition);
+    setHistory(loadHistory());
+  }, [config, players]);
+
+  const handleLoadCompetition = useCallback((competition: SavedCompetition) => {
+    setConfig(competition.config);
+    setPlayers(competition.players);
+    setActiveTab('input');
+  }, []);
+
+  const handleDeleteCompetition = useCallback((id: string) => {
+    deleteCompetition(id);
+    setHistory(loadHistory());
+  }, []);
 
   const validPlayersCount = players.filter(
     p => p.scores.length === 18 && p.scores.every(s => s > 0)
@@ -174,6 +203,13 @@ function App() {
           順位表
           {results.length > 0 && <span className="badge">{results.length}</span>}
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          履歴
+          {history.length > 0 && <span className="badge">{history.length}</span>}
+        </button>
       </nav>
 
       {/* Tab content */}
@@ -189,7 +225,14 @@ function App() {
           />
         )}
         {activeTab === 'results' && (
-          <ResultsTable results={results} />
+          <ResultsTable results={results} onSave={handleSaveCompetition} />
+        )}
+        {activeTab === 'history' && (
+          <HistoryPanel
+            history={history}
+            onLoad={handleLoadCompetition}
+            onDelete={handleDeleteCompetition}
+          />
         )}
       </main>
 

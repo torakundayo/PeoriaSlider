@@ -16,7 +16,6 @@ export interface Player {
   id: string;
   name: string;
   scores: number[];         // 18ホール分のグロススコア
-  age?: number;             // 年齢（オプション、同点時の順位決定用）
 }
 
 // 計算結果（View用）(Calculation Result for Display)
@@ -36,15 +35,6 @@ export interface AppState {
   config: CompetitionConfig;
   players: Player[];
 }
-
-// 新ペリア標準の12ホール配置（OUT/IN各6ホール）
-export const DEFAULT_HIDDEN_HOLES = [
-  0, 2, 4, 6, 8, 10,    // OUT: 1, 3, 5, 7, 9, 11番ホール
-  11, 13, 15, 16, 17, 18 // IN: 12, 14, 16, 17, 18番ホール
-].map(i => i < 9 ? i : i - 1); // 0-indexed adjustment
-
-// 標準的な新ペリア12ホール (1-indexed for display)
-export const STANDARD_NEW_PEORIA_HOLES = [1, 3, 5, 7, 9, 11, 10, 12, 14, 16, 17, 18];
 
 // HDCP上限の選択肢
 export const HDCP_LIMIT_OPTIONS = [
@@ -66,6 +56,15 @@ export const DEFAULT_CONFIG: CompetitionConfig = {
   },
   roundingMode: 'round'
 };
+
+// 保存済みコンペデータ
+export interface SavedCompetition {
+  id: string;
+  name: string;
+  date: string;           // ISO date string (保存日時)
+  config: CompetitionConfig;
+  players: Player[];
+}
 
 // ホール情報の表示用
 export interface HoleInfo {
