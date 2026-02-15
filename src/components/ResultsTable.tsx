@@ -71,37 +71,54 @@ export function ResultsTable({ results, onSave }: ResultsTableProps) {
     saveTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
+  const canShare = typeof navigator.share === 'function';
+
   const shareText = useMemo(
     () => formatResultsText(results, boobyRank),
     [results, boobyRank]
   );
 
-  const handleShareLine = useCallback(() => {
-    const encoded = encodeURIComponent(shareText);
-    window.open(`https://line.me/R/share?text=${encoded}`, '_blank');
-  }, [shareText]);
-
-  const handleCopyText = useCallback(async () => {
+  const copyToClipboard = useCallback(async (text: string) => {
     try {
-      await navigator.clipboard.writeText(shareText);
-      setCopyStatus('copied');
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
+      await navigator.clipboard.writeText(text);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
-      textarea.value = shareText;
+      textarea.value = text;
       textarea.style.position = 'fixed';
       textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopyStatus('copied');
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
     }
-  }, [shareText]);
+  }, []);
+
+  const showCopied = useCallback(() => {
+    setCopyStatus('copied');
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopyStatus('idle'), 2000);
+  }, []);
+
+  const handleShareLine = useCallback(async () => {
+    // Web Share API (モバイルでLINE等を選択可能)
+    if (canShare) {
+      try {
+        await navigator.share({ text: shareText });
+        return;
+      } catch {
+        // ユーザーがキャンセルした場合は何もしない
+        return;
+      }
+    }
+    // フォールバック: クリップボードにコピー
+    await copyToClipboard(shareText);
+    showCopied();
+  }, [shareText, copyToClipboard, showCopied]);
+
+  const handleCopyText = useCallback(async () => {
+    await copyToClipboard(shareText);
+    showCopied();
+  }, [shareText, copyToClipboard, showCopied]);
 
   if (results.length === 0) {
     return (
@@ -173,14 +190,19 @@ export function ResultsTable({ results, onSave }: ResultsTableProps) {
       {/* Share section */}
       <div className="share-section">
         <button className="btn-share-line" onClick={handleShareLine}>
-          LINE で共有
+          {canShare ? 'LINE で共有' : 'テキストをコピー'}
         </button>
-        <button
-          className={`btn-copy ${copyStatus === 'copied' ? 'copied' : ''}`}
-          onClick={handleCopyText}
-        >
-          {copyStatus === 'copied' ? 'コピーしました' : 'テキストをコピー'}
-        </button>
+        {canShare && (
+          <button
+            className={`btn-copy ${copyStatus === 'copied' ? 'copied' : ''}`}
+            onClick={handleCopyText}
+          >
+            {copyStatus === 'copied' ? 'コピーしました' : 'テキストをコピー'}
+          </button>
+        )}
+        {!canShare && copyStatus === 'copied' && (
+          <span className="copy-feedback">コピーしました</span>
+        )}
       </div>
 
       {/* Save section */}

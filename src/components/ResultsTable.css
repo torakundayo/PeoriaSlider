@@ -263,6 +263,14 @@ tbody td {
   color: #2e7d32;
 }
 
+.copy-feedback {
+  font-size: 0.85rem;
+  color: #2e7d32;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
 /* Save section */
 .save-section {
   margin-top: 16px;
